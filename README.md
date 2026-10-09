@@ -1,4 +1,4 @@
-# Kerbal Brains Mods: Loading Reel
+﻿# Kerbal Brains Mods: Loading Reel
 
 The loading-screen slideshow for every Kerbal Brains mod (Kerbal Brains, IronRoot, Jump Gate, HullWorks, Glow-Up, Kerbal Critters).
 
@@ -18,3 +18,13 @@ When the game starts, the mods read `reel.cfg` from here and download any new pi
 
 Assembly names: KerbalBrains, IronRoot, KerbalJumpGate, KerbalGlowUp, HullWorks, KerbalCritters, BadgeBar.
 Pictures: 1920x1080 JPG, under 1 MB.
+
+## Announcements (reel v3)
+Announcement slides go to every player with any Kerbal Brains mod. They open the loading slideshow, stay up 8 seconds and come back up to 3 times per load (several announcements take turns).
+
+1. Make the slide:
+   `python make_announcement.py --headline "IronRoot 0.9 is here" --text "Line one|Line two" --link "https://..." --tag "NEW UPDATE" --until 2026-11-15`
+   (`--tag`: ANNOUNCEMENT, COMING SOON, NEW UPDATE, NEW MOD, EVENT. `--until` = last day it shows. `--link` adds a QR code.)
+2. Run `publish_reel.ps1`. Expired announcements move to `news\old` by themselves.
+
+File names: `news\news__<name>.jpg` or `news\news__<name>__until-YYYY-MM-DD.jpg`.

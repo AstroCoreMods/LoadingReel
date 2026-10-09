@@ -6,6 +6,9 @@
 #   pics\<Assembly>__<name>.jpg      a loading picture, shown to players who DO have that mod
 #   pics\all__<name>.jpg             a loading picture everyone sees
 #   tips\<Assembly>.txt              loading tips for that mod, one per line (all.txt = everyone)
+#   news\news__<name>.jpg            an ANNOUNCEMENT everyone sees: it opens the loading slideshow and comes back
+#   news\news__<name>__until-YYYY-MM-DD.jpg   ...and stops showing after that date
+#                                    (make one with make_announcement.py: headline, text, QR link)
 #
 # Assembly names: KerbalBrains, IronRoot, KerbalJumpGate, KerbalGlowUp, HullWorks, KerbalCritters, BadgeBar
 # Pictures: 1920x1080 JPG, under 1 MB is best (players download them).
@@ -16,6 +19,8 @@ param(
     [double]$AdSeconds = 8,     # how long an ad stays on screen
     [int]$AdEvery = 3,          # one ad, then (AdEvery - 1) pictures
     [double]$OurShare = 0.4,    # share of picture slots that use our pictures (the rest are the game's / JNSQ's)
+    [double]$NewsSeconds = 8,   # how long an announcement stays on screen
+    [int]$NewsShows = 3,        # how many times each announcement plays per loading screen
     [switch]$NoPush
 )
 $ErrorActionPreference = "Stop"
@@ -31,6 +36,8 @@ $out.Add("{")
 $out.Add("`tadSeconds = $AdSeconds")
 $out.Add("`tadEvery = $AdEvery")
 $out.Add("`tourShare = $OurShare")
+$out.Add("`tnewsSeconds = $NewsSeconds")
+$out.Add("`tnewsShows = $NewsShows")
 $n = 0
 
 foreach ($f in Get-ChildItem ads -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png)$' }) {
@@ -47,6 +54,20 @@ foreach ($f in Get-ChildItem pics -File -ErrorAction SilentlyContinue | Where-Ob
     $out.Add("`t`tfile = pics/$($f.Name)"); $out.Add("`t`tkind = pic"); $out.Add("`t`tmod = $mod"); $out.Add("`t`trev = $(Rev $f.FullName)")
     $out.Add("`t}"); $n++
 }
+$news = 0
+foreach ($f in Get-ChildItem news -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png)$' }) {
+    if ((Bad $f.Name) -or $f.BaseName -notmatch '^news__([A-Za-z0-9-]+?)(?:__until-(\d{4}-\d{2}-\d{2}))?$') { Write-Warning "skipped $($f.Name) (name it news__<name>.jpg or news__<name>__until-YYYY-MM-DD.jpg)"; continue }
+    $until = $Matches[2]
+    if ($until -and ([datetime]::ParseExact($until, 'yyyy-MM-dd', $null)) -lt (Get-Date).Date) {
+        New-Item -ItemType Directory -Force news\old | Out-Null
+        Move-Item $f.FullName news\old -Force
+        Write-Host "retired $($f.Name) (ended $until, moved to news\old)"; continue
+    }
+    $out.Add("`tITEM"); $out.Add("`t{")
+    $out.Add("`t`tfile = news/$($f.Name)"); $out.Add("`t`tkind = news"); $out.Add("`t`tmod = *"); $out.Add("`t`trev = $(Rev $f.FullName)")
+    if ($until) { $out.Add("`t`tuntil = $until") }
+    $out.Add("`t}"); $n++; $news++
+}
 $t = 0
 foreach ($f in Get-ChildItem tips -File -Filter *.txt -ErrorAction SilentlyContinue) {
     $mod = if ($f.BaseName -eq "all") { "*" } else { $f.BaseName }
@@ -58,7 +79,7 @@ foreach ($f in Get-ChildItem tips -File -Filter *.txt -ErrorAction SilentlyConti
 }
 $out.Add("}")
 [System.IO.File]::WriteAllLines((Join-Path $PSScriptRoot "reel.cfg"), $out, (New-Object System.Text.UTF8Encoding($false)))
-Write-Host "reel.cfg: $n pictures/ads, $t tips"
+Write-Host "reel.cfg: $n pictures/ads/announcements ($news announcements), $t tips"
 
 if (-not $NoPush) {
     git add -A
