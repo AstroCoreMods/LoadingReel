@@ -1,6 +1,6 @@
 """Kerbal Brains Mods loading-screen ads.
-Usage: python3 build_ads.py <art_dir> <badge_dir> <orbitron.ttf> <out_dir>
-art_dir: 0..5.png (Higgsfield 16:9, text space on the left). badge_dir: <Assembly>.png round badges.
+Usage: python3 build_ads.py <art_dir> <badge_dir> <orbitron.ttf | folder with orb500/orb700/orb900.ttf> <out_dir>
+art_dir: 0..5.png or .jpg (Higgsfield 16:9, text space on the left). badge_dir: <Assembly>.png round badges.
 Writes ad__<Assembly>__main.jpg (1920x1080) for every mod in ADS.
 """
 import sys
@@ -12,31 +12,36 @@ W, H = 1920, 1080
 ORANGE = (255, 140, 40); CYAN = (34, 229, 255)
 
 ADS = [
-    dict(asm="KerbalBrains", art=0, name=["KERBAL ", "BRAINS"], c=((255, 120, 200), (255, 199, 77)),
+    dict(asm="KerbalBrains", art=0, tier="Neuron membership", name=["KERBAL ", "BRAINS"], c=((255, 120, 200), (255, 199, 77)),
          tag="Kerbals that think for themselves",
          perks=["Kerbals walk, work and chat on their own", "A busy Space Center crew with trucks",
                 "Give orders: dig, build, drive the rover"]),
-    dict(asm="IronRoot", art=1, name=["IRON", "ROOT"], c=((255, 140, 40), (255, 210, 90)),
+    dict(asm="IronRoot", art=1, tier="Synapse membership", name=["IRON", "ROOT"], c=((255, 140, 40), (255, 210, 90)),
          tag="Grow. Mine. Survive.",
          perks=["Build colonies, greenhouses and habitats", "Dig ore and smelt Metal to build more",
                 "Colony Express drops a colony anywhere"]),
-    dict(asm="KerbalJumpGate", art=2, name=["JUMP ", "GATE"], c=((34, 229, 255), (140, 120, 255)),
+    dict(asm="KerbalJumpGate", art=2, tier="Cortex membership", name=["JUMP ", "GATE"], c=((34, 229, 255), (140, 120, 255)),
          tag="Fly through the ring. Pop out at another planet.",
          perks=["Kerbin to Duna in seconds", "Build and deploy your own gates", "Gate contracts with landing bonuses"]),
-    dict(asm="KerbalGlowUp", art=3, name=["GLOW", "-UP"], c=((255, 90, 200), (160, 110, 255)),
+    dict(asm="KerbalGlowUp", art=3, tier="Neuron membership", name=["GLOW", "-UP"], c=((255, 90, 200), (160, 110, 255)),
          tag="New suits, patches and Photo Mode",
          perks=["Planet suits and job colors", "Glowing helmet lights and colony patches", "Photo Mode: freeze time, pose, snap"]),
-    dict(asm="HullWorks", art=4, name=["HULL", "WORKS"], c=((255, 64, 166), (255, 199, 77)),
+    dict(asm="HullWorks", art=4, tier="FREE membership", name=["HULL", "WORKS"], c=((255, 64, 166), (255, 199, 77)),
          tag="Paint Shop for every ship",
          perks=["55 colors plus chrome and metallic", "Paint the whole ship in one click",
                 "61 stickers, plus your own logos"]),
-    dict(asm="KerbalCritters", art=5, name=["KERBAL ", "CRITTERS"], c=((120, 255, 140), (34, 229, 255)),
+    dict(asm="KerbalCritters", art=5, tier="Cortex membership", name=["KERBAL ", "CRITTERS"], c=((120, 255, 140), (34, 229, 255)),
          tag="Every world has a creature waiting",
          perks=["8 critters to discover on 8 worlds", "Fill your Creature Book", "Critters roam near your lander"]),
 ]
 
 
+WEIGHTS = {"Black": 900, "Bold": 700, "Medium": 500}
+
+
 def font(px, weight="Black"):
+    if Path(FONT).is_dir():     # static weights: orb500.ttf, orb700.ttf, orb900.ttf
+        return ImageFont.truetype(str(Path(FONT) / f"orb{WEIGHTS.get(weight, 900)}.ttf"), px)
     f = ImageFont.truetype(FONT, px)
     try: f.set_variation_by_name(weight)
     except Exception: pass
@@ -73,7 +78,9 @@ def shadow_text(img, xy, text, f, blur=6, off=(3, 5), alpha=210):
 
 
 def build(ad):
-    im = Image.open(ART / f"{ad['art']}.png").convert("RGB")
+    src = ART / f"{ad['art']}.png"
+    if not src.exists(): src = ART / f"{ad['art']}.jpg"
+    im = Image.open(src).convert("RGB")
     s = max(W / im.width, H / im.height)
     im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
     im = im.crop(((im.width - W) // 2, (im.height - H) // 2, (im.width - W) // 2 + W, (im.height - H) // 2 + H)).convert("RGBA")
@@ -150,7 +157,7 @@ def build(ad):
 
     # call to action
     cf = font(40, "Black")
-    ctxt = "FREE DOWNLOAD"
+    ctxt = "MEMBERS ONLY"
     cb = d.textbbox((0, 0), ctxt, font=cf)
     cw, ch = cb[2] - cb[0] + 80, 92
     cy0 = 850
@@ -163,8 +170,11 @@ def build(ad):
     im.alpha_composite(btn, (X, cy0))
     d = ImageDraw.Draw(im)
     d.text((X + 40, cy0 + (ch - (cb[3] - cb[1])) // 2 - cb[1]), ctxt, font=cf, fill=(22, 12, 2))
-    kf = font(34, "Medium")
-    d.text((X + cw + 34, cy0 + 8), "Get it from", font=kf, fill=(200, 215, 235))
+    # Membership line: which Kerbal Brains Mods membership includes this mod.
+    kt = "With a " + ad["tier"]
+    kf = font(36, "Bold")
+    while d.textbbox((0, 0), kt, font=kf)[2] > 1100 - (X + cw + 34) and kf.size > 20: kf = font(kf.size - 2, "Bold")
+    d.text((X + cw + 34, cy0 + 8), kt, font=kf, fill=(225, 235, 248))
     text_grad(im, (X + cw + 34, cy0 + 46), "KERBAL BRAINS MODS", font(36, "Black"), CYAN, (255, 120, 200))
 
     im.convert("RGB").save(OUT / f"ad__{ad['asm']}__main.jpg", quality=88, optimize=True)
