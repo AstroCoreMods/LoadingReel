@@ -12,25 +12,25 @@ W, H = 1920, 1080
 ORANGE = (255, 140, 40); CYAN = (34, 229, 255)
 
 ADS = [
-    dict(asm="KerbalBrains", art=0, tier="Neuron membership", name=["KERBAL ", "BRAINS"], c=((255, 120, 200), (255, 199, 77)),
+    dict(asm="KerbalBrains", art=0, name=["KERBAL ", "BRAINS"], c=((255, 120, 200), (255, 199, 77)),
          tag="Kerbals that think for themselves",
          perks=["Kerbals walk, work and chat on their own", "A busy Space Center crew with trucks",
                 "Give orders: dig, build, drive the rover"]),
-    dict(asm="IronRoot", art=1, tier="Synapse membership", name=["IRON", "ROOT"], c=((255, 140, 40), (255, 210, 90)),
+    dict(asm="IronRoot", art=1, name=["IRON", "ROOT"], c=((255, 140, 40), (255, 210, 90)),
          tag="Grow. Mine. Survive.",
          perks=["Build colonies, greenhouses and habitats", "Dig ore and smelt Metal to build more",
                 "Colony Express drops a colony anywhere"]),
-    dict(asm="KerbalJumpGate", art=2, tier="Cortex membership", name=["JUMP ", "GATE"], c=((34, 229, 255), (140, 120, 255)),
+    dict(asm="KerbalJumpGate", art=2, name=["JUMP ", "GATE"], c=((34, 229, 255), (140, 120, 255)),
          tag="Fly through the ring. Pop out at another planet.",
          perks=["Kerbin to Duna in seconds", "Build and deploy your own gates", "Gate contracts with landing bonuses"]),
-    dict(asm="KerbalGlowUp", art=3, tier="Neuron membership", name=["GLOW", "-UP"], c=((255, 90, 200), (160, 110, 255)),
+    dict(asm="KerbalGlowUp", art=3, name=["GLOW", "-UP"], c=((255, 90, 200), (160, 110, 255)),
          tag="New suits, patches and Photo Mode",
          perks=["Planet suits and job colors", "Glowing helmet lights and colony patches", "Photo Mode: freeze time, pose, snap"]),
-    dict(asm="HullWorks", art=4, tier="FREE membership", name=["HULL", "WORKS"], c=((255, 64, 166), (255, 199, 77)),
+    dict(asm="HullWorks", art=4, name=["HULL", "WORKS"], c=((255, 64, 166), (255, 199, 77)),
          tag="Paint Shop for every ship",
          perks=["55 colors plus chrome and metallic", "Paint the whole ship in one click",
                 "61 stickers, plus your own logos"]),
-    dict(asm="KerbalCritters", art=5, tier="Cortex membership", name=["KERBAL ", "CRITTERS"], c=((120, 255, 140), (34, 229, 255)),
+    dict(asm="KerbalCritters", art=5, name=["KERBAL ", "CRITTERS"], c=((120, 255, 140), (34, 229, 255)),
          tag="Every world has a creature waiting",
          perks=["8 critters to discover on 8 worlds", "Fill your Creature Book", "Critters roam near your lander"]),
 ]
@@ -155,27 +155,21 @@ def build(ad):
         d.text((X + 74, py), p, font=pf, fill=(246, 249, 255))
         py += 92
 
-    # call to action
+    # call to action: show off, never sell (no prices, tiers or memberships inside the game)
     cf = font(40, "Black")
-    ctxt = "MEMBERS ONLY"
+    ctxt = "ANOTHER KERBAL BRAINS MOD"
     cb = d.textbbox((0, 0), ctxt, font=cf)
     cw, ch = cb[2] - cb[0] + 80, 92
     cy0 = 850
     btn = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
     bm = Image.new("L", (cw * 4, ch * 4), 0); ImageDraw.Draw(bm).rounded_rectangle([0, 0, cw * 4 - 1, ch * 4 - 1], radius=ch * 2, fill=255)
     bglow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(bglow).rounded_rectangle([X - 8, cy0 - 8, X + cw + 8, cy0 + ch + 8], radius=ch, fill=ORANGE + (150,))
+    ImageDraw.Draw(bglow).rounded_rectangle([X - 8, cy0 - 8, X + cw + 8, cy0 + ch + 8], radius=ch, fill=(255, 95, 168, 140))
     im.alpha_composite(bglow.filter(ImageFilter.GaussianBlur(16)))
-    btn.paste(gradient_fill((cw, ch), (255, 110, 30), (255, 196, 64)), (0, 0), bm.resize((cw, ch), Image.LANCZOS))
+    btn.paste(gradient_fill((cw, ch), (255, 184, 214), (255, 120, 200)), (0, 0), bm.resize((cw, ch), Image.LANCZOS))
     im.alpha_composite(btn, (X, cy0))
     d = ImageDraw.Draw(im)
-    d.text((X + 40, cy0 + (ch - (cb[3] - cb[1])) // 2 - cb[1]), ctxt, font=cf, fill=(22, 12, 2))
-    # Membership line: which Kerbal Brains Mods membership includes this mod.
-    kt = "With a " + ad["tier"]
-    kf = font(36, "Bold")
-    while d.textbbox((0, 0), kt, font=kf)[2] > 1100 - (X + cw + 34) and kf.size > 20: kf = font(kf.size - 2, "Bold")
-    d.text((X + cw + 34, cy0 + 8), kt, font=kf, fill=(225, 235, 248))
-    text_grad(im, (X + cw + 34, cy0 + 46), "KERBAL BRAINS MODS", font(36, "Black"), CYAN, (255, 120, 200))
+    d.text((X + 40, cy0 + (ch - (cb[3] - cb[1])) // 2 - cb[1]), ctxt, font=cf, fill=(74, 13, 42))
 
     im.convert("RGB").save(OUT / f"ad__{ad['asm']}__main.jpg", quality=88, optimize=True)
 
