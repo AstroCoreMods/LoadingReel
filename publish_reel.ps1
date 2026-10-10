@@ -1,4 +1,4 @@
-# Kerbal Brains Mods loading reel: rebuild reel.cfg from this folder and push it online.
+﻿# Kerbal Brains Mods loading reel: rebuild reel.cfg from this folder and push it online.
 # Every Kerbal Brains mod reads reel.cfg when the game starts, so new pictures and ads show up
 # in players' loading screens without a mod update.
 #
@@ -17,8 +17,9 @@
 #         powershell -ExecutionPolicy Bypass -File .\publish_reel.ps1 -NoPush    (build only)
 param(
     [double]$AdSeconds = 8,     # how long an ad stays on screen
-    [int]$AdEvery = 3,          # one ad, then (AdEvery - 1) pictures
-    [double]$OurShare = 0.4,    # share of picture slots that use our pictures (the rest are the game's / JNSQ's)
+    [int]$AdEvery = 5,          # one ad, then (AdEvery - 1) pictures
+    [double]$OurShare = 0.25,   # share of picture slots that use our pictures (the rest are the game's / other mods')
+    # Mix target (Oct 2026): 40% ours / 60% other mods. With ads on: 1/5 ads + 4/5 x 0.25 pictures = 0.40.
     [double]$NewsSeconds = 8,   # how long an announcement stays on screen
     [int]$NewsShows = 3,        # how many times each announcement plays per loading screen
     [switch]$NoPush

@@ -33,6 +33,10 @@ ADS = [
     dict(asm="KerbalCritters", art=5, name=["KERBAL ", "CRITTERS"], c=((120, 255, 140), (34, 229, 255)),
          tag="Every world has a creature waiting",
          perks=["8 critters to discover on 8 worlds", "Fill your Creature Book", "Critters roam near your lander"]),
+    dict(asm="KerbalDyson", art=6, name=["KERBAL ", "DYSON"], c=((255, 106, 31), (255, 199, 77)),
+         tag="A star wrapped in a sleeping Dyson sphere",
+         perks=["A new star, a new planet, a walk-in station", "Wake the sphere and watch it light up",
+                "Earn the Dyson Drive: crazy efficient"]),
 ]
 
 
